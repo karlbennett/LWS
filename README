@@ -1,0 +1,4 @@
+LWS
+
+This is my attempt at a Web Server written in Lisp.
+So far all I have is it returning the good old "Hello World", but hay it's a start :)
