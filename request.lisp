@@ -82,3 +82,19 @@
       ; If the method doesn't exist return a bad request response message.
       (undefined-function () (http-request-bad-request inputstream))))
   (logger "http-request-handler - Finished")) ; Log the finished request handling.
+
+
+;(defun http-method-options (uri http-version) "OPTIONS")
+(defun http-method-get (uri http-version) (list "GET" uri http-version))
+(defun http-method-head (uri http-version) (list "HEAD" uri http-version))
+;(defun http-method-post (uri http-version) (list "POST" uri http-version))
+;(defun http-method-put (uri http-version) (list "PUT" uri http-version))
+;(defun http-method-delete (uri http-version) (list "DELETE" uri http-version))
+;(defun http-method-trace (uri http-version) (list "TRACE" uri http-version))
+;(defun http-method-connect (uri http-version) (list "CONNECT" uri http-version))
+(defun http-method-undefined () "UNDEFINED")
+
+(defmacro process-http-request ((method uri http-version))
+  `(handler-case
+      (,(intern (concatenate 'string "HTTP-METHOD-" method)) ,uri ,http-version)
+    (undefined-function () (http-method-undefined))))
