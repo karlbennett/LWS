@@ -1,3 +1,5 @@
+(load "constants.lisp")
+
 ; Utility Functions
 (defun split-string (d str)
   "This function can be used to split a string with any given delimiter."
@@ -9,8 +11,8 @@
 (defun file->text (f)
   "This function can be used to read in a file from the server."
   (handler-case ; Handle any conditions where the file name given may ot be correct.
-      ; Open the file using the provided path on the end off the root directory.
-      (with-open-file (in f :element-type 'character)
+      ; Open the file using the provided path appended to the end off the root directory.
+      (with-open-file (in (concatenate 'string +rootdir+ f) :element-type 'character)
 	; Create char array that is big enough to hold the whole file.
 	(let ((digits (make-array (file-length in) :element-type 'character)))
 	  (read-sequence digits in) ; Read the whole file into the char array.
