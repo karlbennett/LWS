@@ -8,7 +8,7 @@
   (list (split-string #\Space header)))
 
 (defun retrieve-headers (inputstream)
-  "This function can be used to retriee all the headers from an http request message."
+  "This function can be used to retrieve all the headers from an http request message."
   (do* ((line (ignore-ws inputstream) (read-line inputstream nil nil)) ; Read in a line and...
 	;...check if it's empty then...
 	(line-is-empty (char= #\Return (elt line 0)) (char= #\Return (elt line 0)))
@@ -21,11 +21,19 @@
        ; When there are no more headers return the 2D header list.
        ((and (< 0 (length line-list)) line-is-empty) line-list)
     ; All the while loggin each header that is parsed.
-    (logger (concatenate 'string "http-request-handler - retrieve-headers - " header))))
+    (logger (concatenate 'string " " header))))
+
+(defun format-error-page (stream method page-uri default-page)
+  (format stream "~A~%~A~%~%~A~%"
+		method
+		+header-content-type-text+
+		(if page-uri
+		    (file->text page-uri)
+		    default-page)))
 
 (defun http-request-handler (inputstream)
   "This function can be used to handle an http request."
-  (logger "http-request-handler - Started") ; Log the start of the request handling.
+  (logger "**** http-request-handler - Started") ; Log the start of the request handling.
   (let* ((headers (retrieve-headers inputstream)) ; Retrieve all the headers then...
 	 ; using the first header generate the symbol for the http function that
 	 ; has been requested.
@@ -33,13 +41,11 @@
     (if (fboundp function-symbol) ; If the symbol matches a knowen function...
 	; ...run the function and send it's output back down the input stream to the client.
 	(format inputstream (funcall function-symbol (second (first headers))))
-	(format inputstream "~A~%~A~%~%~A~%" ; ...else send the bad request page instead.
-		+http-bad-request+
-		+header-content-type-text+
-		(if *bad-request-page-uri*
-		    (file->text *bad-request-page-uri*)
-		    *bad-request-default-page*))))
-  (logger "http-request-handler - Finished")) ; Log the finished request handling.
+	(format-error-page inputstream 
+			  +http-bad-request+ 
+			  *bad-request-page-uri*
+			  *bad-request-default-page*))); ...else send bad request page instead.
+  (logger "**** http-request-handler - Finished")) ; Log the finished request handling.
 
 
 ;(defun http-method-options (uri http-version) "OPTIONS")
@@ -50,12 +56,10 @@
 		+http-ok+
 		+header-content-type-text+
 		file-string)
-	(format nil "~A~%~A~%~%~A~%"
+	(format-error-page nil
 		+http-not-found+
-		+header-content-type-text+
-		(if *not-found-page-uri*
-		    (file->text *not-found-page-uri*)
-		    *not-found-default-page*)))))
+		*not-found-page-uri*
+		*not-found-default-page*))))
     
 (defun http-method-head (uri http-version) (list "HEAD" uri http-version))
 ;(defun http-method-post (uri http-version) (list "POST" uri http-version))
