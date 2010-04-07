@@ -61,7 +61,16 @@
 		*not-found-page-uri*
 		*not-found-default-page*))))
     
-(defun http-method-head (uri http-version) (list "HEAD" uri http-version))
+(defun http-method-head (uri)
+  (let ((file-string (file->text uri)))
+    (if file-string
+	(format nil "~A~%~A~%~%"
+		+http-ok+
+		+header-content-type-text+)
+	(format nil "~A~%~A~%~%"
+		+http-not-found+
+		+header-content-type-text+))))
+
 ;(defun http-method-post (uri http-version) (list "POST" uri http-version))
 ;(defun http-method-put (uri http-version) (list "PUT" uri http-version))
 ;(defun http-method-delete (uri http-version) (list "DELETE" uri http-version))
